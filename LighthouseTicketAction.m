@@ -1,5 +1,5 @@
 //
-//  LighthouseMessageAction.m
+//  LighthouseTicketAction.m
 //
 //  Copyright (c) 2009 Google Inc. All rights reserved.
 //
@@ -78,7 +78,7 @@ GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
                  name:kHGSAccountDidChangeNotification
                object:account_];
     } else {
-      HGSLogDebug(@"Missing account identifier for LighthouseMessageAction '%@'",
+      HGSLogDebug(@"Missing account identifier for LighthouseTicketAction '%@'",
                   [self identifier]);
       [self release];
       self = nil;
@@ -177,7 +177,7 @@ GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
       errorString = [NSString stringWithFormat:errorString, username];
       [self informUserWithDescription:errorString
                           successCode:kHGSUserMessageWarningType];
-      HGSLog(@"LighthouseMessageAction failed due to missing keychain item "
+      HGSLog(@"LighthouseTicketAction failed due to missing keychain item "
              @"for account '%@'.", [account_ displayName]);
     }
   }
@@ -201,7 +201,7 @@ GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
     NSString *errorString = [NSString stringWithFormat:errorFormat, statusCode];
     [self informUserWithDescription:errorString
                         successCode:kHGSUserMessageErrorType];
-    HGSLog(@"LighthouseMessageAction failed to tweet for account '%@': "
+    HGSLog(@"LighthouseTicketAction failed to tweet for account '%@': "
            @"status=%d.", [account_ displayName], statusCode);
   }
 }
@@ -216,7 +216,7 @@ GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
                            [error code]];
   [self informUserWithDescription:errorString
                       successCode:kHGSUserMessageErrorType];
-  HGSLog(@"LighthouseMessageAction failed to tweet for account '%@': "
+  HGSLog(@"LighthouseTicketAction failed to tweet for account '%@': "
          @"error=%d '%@'.",
          [account_ displayName], [error code], [error localizedDescription]);
 }
