@@ -179,7 +179,7 @@ GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
 - (void)ticketFetcher:(GDataHTTPFetcher *)fetcher
     finishedWithData:(NSData *)data {
   NSInteger statusCode = [fetcher statusCode];
-  if (statusCode == 200) {
+  if (statusCode == 201) {
     NSString *successString
       = HGSLocalizedString(@"Ticket created!",
                            @"A dialog label explaining that the user's message "
