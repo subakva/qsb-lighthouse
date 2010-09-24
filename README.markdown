@@ -2,6 +2,7 @@ Lighthouse QSB Plugin
 ================================================================================
 
 The intended uses of this plugin are:
+
  1. quickly create lighthouse tickets using QSB
  2. search lighthouse tickets using QSB
 
