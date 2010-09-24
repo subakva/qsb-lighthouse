@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>${EXECUTABLE_NAME}</string>
+	<key>CFBundleName</key>
+	<string>${PRODUCT_NAME}</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.google.qsb.plugin.Lighthouse</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>1.0</string>
+	<key>HGSExtensions</key>
+	<array>
+		<dict>
+			<key>HGSExtensionClass</key>
+			<string>HGSAccountType</string>
+			<key>HGSExtensionIdentifier</key>
+			<string>com.google.qsb.lighthouse.account</string>
+			<key>HGSExtensionUserVisibleName</key>
+			<string>^Lighthouse</string>
+			<key>HGSExtensionPoint</key>
+			<string>HGSAccountTypesExtensionPoint</string>
+			<key>HGSExtensionOfferedAccountType</key>
+			<string>com.google.qsb.lighthouse.account</string>
+			<key>HGSExtensionOfferedAccountClass</key>
+			<string>LighthouseAccount</string>
+			<key>QSBSetUpAccountViewNibName</key>
+			<string>SetUpLighthouseAccountView</string>
+			<key>QSBSetUpAccountViewControllerClassName</key>
+			<string>SetUpLighthouseAccountViewController</string>
+			<key>QSBEditAccountWindowNibName</key>
+			<string>EditLighthouseAccount</string>
+			<key>QSBEditAccountWindowControllerClassName</key>
+			<string>EditLighthouseAccountWindowController</string>
+		</dict>
+		<dict>
+			<key>HGSExtensionClass</key>
+			<string>LighthouseSendMessageAction</string>
+			<key>HGSExtensionPoint</key>
+			<string>HGSActionsExtensionPoint</string>
+			<key>HGSExtensionUserVisibleName</key>
+			<string>^Send Lighthouse Status</string>
+			<key>HGSActionDirectObjectTypes</key>
+			<string>text</string>
+			<key>HGSExtensionIdentifier</key>
+			<string>com.google.text.action.sendlighthousemessage</string>
+			<key>HGSExtensionDesiredAccountTypes</key>
+			<string>com.google.qsb.lighthouse.account</string>
+			<key>HGSExtensionIsEnabledByDefault</key>
+			<true/>
+			<key>HGSActionMustRunOnMainThread</key>
+			<true/>
+		</dict>
+	</array>
+	<key>HGSPluginAPIVersion</key>
+	<string>${VERMILLION_PLUGIN_API_VERSION}</string>
+</dict>
+</plist>

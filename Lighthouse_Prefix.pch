@@ -1,0 +1,14 @@
+//
+//  Lighthouse_Prefix.pch
+//  Lighthouse
+//
+//  Created by Dave MacLachlan on 1/4/10.
+//  Copyright Google Inc 2010. All rights reserved.
+//
+
+
+#ifdef __OBJC__
+  #import <Cocoa/Cocoa.h>
+  #import <Vermilion/Vermilion.h>
+  #import <GTM/GTMDefines.h>
+#endif

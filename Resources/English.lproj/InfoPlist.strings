@@ -1,0 +1,5 @@
+﻿/* Name of action that sends text to Lighthouse. Do not include ^ in localization. */
+"^Send Lighthouse Status" = "Send Lighthouse Status";
+
+/* A label denoting the name of the Lighthouse account type which allows people to access their Lighthouse accounts. Do not include ^ in localization.*/
+"^Lighthouse" = "Lighthouse";

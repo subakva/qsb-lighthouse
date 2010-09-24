@@ -1,0 +1,42 @@
+﻿//
+//  Localized strings (en)
+//  
+//  Copyright Google Inc., 2008-2009. All rights reserved.
+//
+
+/* A dialog label explaining to the user that we could not tweet. %d is an error code. */
+"Could not tweet! (%d)" = "Could not tweet! (%d)";
+
+/* A dialog label explaining that the user could not send their Lighthouse data due to a bad password for account. %@ */
+"Could not tweet. Please check the password for account %@" = "Could not tweet. Please check the password for account %@";
+
+/* A dialog label explaining that their Lighthouse message was too long and was truncated. */
+"Message too long - truncated." = "Message too long — truncated.";
+
+/* A dialog label explaning that the user's message has been successfully sent to Lighthouse. */
+"Message tweeted!" = "Message tweeted!";
+
+/* A dialog title. Lighthouse is a product name. */
+"Lighthouse" = "Lighthouse";
+
+/* A dialog label telling you to set up a Lighthouse account. */
+"Set up your Lighthouse account." = "Set up your Lighthouse account.";
+
+/* A dialog label telling you to update a Lighthouse access token. */
+"Update your Lighthouse token." = "Update your Lighthouse token.";
+
+/* A dialog label denoting a text field that contains an account name. */
+"Domain Name:" = "Domain Name:";
+
+/* A dialog label denoting a text field that contains a password. */
+"Token:" = "Token:";
+
+/* A button label for cancel */
+"Cancel" = "Cancel";
+
+/* A button label denoting that you are going to update your password. */
+"Update" = "Update";
+
+/* A button label denoting that you are going to setup your account. */
+"Setup" = "Setup";
+
