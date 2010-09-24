@@ -36,34 +36,37 @@
 #import <Vermilion/HGSKeychainItem.h>
 #import <GData/GDataHTTPFetcher.h>
 
-static NSString *const kMessageBodyFormat = @"status=%@";
-static NSString *const kSendStatusFormat
-  = @"https://lighthouse.com/statuses/update.xml?"
-    @"source=googlequicksearchboxmac&status=%@";
+static NSString *const kCreateTicketURLFormat = @"https://%@.lighthouseapp.com/projects/%@/tickets.xml";
+static NSString *const kMessageBodyFormat = @"<?xml version='1.0' encoding='UTF-8'?>"
+"<ticket>"
+"  <body>%@</body>"
+"  <title>%@</title>"
+"  <tag>qsb</tag>"
+"</ticket>";
 
-// An action that will send a status update message for a Lighthouse account.
+// An action that will create a new ticket for a Lighthouse account.
 //
-@interface LighthouseSendMessageAction : HGSAction <HGSAccountClientProtocol> {
+@interface LighthouseCreateTicketAction : HGSAction <HGSAccountClientProtocol> {
  @private
   HGSSimpleAccount *account_;
 }
 
 // Called by performWithInfo: to actually send the message.
-- (void)sendLighthouseStatus:(NSString *)lighthouseMessage;
+- (void)createLighthouseTicket:(NSString *)ticketTitle;
 
 // Utility function to send notification so user can be notified of
 // success or failure.
 - (void)informUserWithDescription:(NSString *)description
                       successCode:(NSInteger)successCode;
 - (void)loginCredentialsChanged:(NSNotification *)notification ;
-- (void)tweetFetcher:(GDataHTTPFetcher *)fetcher
+- (void)ticketFetcher:(GDataHTTPFetcher *)fetcher
     finishedWithData:(NSData *)data;
-- (void)tweetFetcher:(GDataHTTPFetcher *)fetcher
+- (void)ticketFetcher:(GDataHTTPFetcher *)fetcher
      failedWithError:(NSError *)error;
 @end
 
 
-@implementation LighthouseSendMessageAction
+@implementation LighthouseCreateTicketAction
 
 GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
 
@@ -98,38 +101,39 @@ GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
     = [info objectForKey:kHGSActionDirectObjectsKey];
   BOOL success = NO;
   if (directObjects) {
-    // Pull something out of |directObjects| that can be turned into a tweet.
+    // Pull something out of |directObjects| that can be turned into a ticket.
     NSString *message = [directObjects displayName];
-    [self sendLighthouseStatus:message];
+    [self createLighthouseTicket:message];
     success = YES;
   }
   return success;
 }
 
-- (void)sendLighthouseStatus:(NSString *)lighthouseMessage {
-  if (lighthouseMessage) {
+- (void)createLighthouseTicket:(NSString *)ticketTitle {
+  if (ticketTitle) {
     HGSKeychainItem* keychainItem
       = [HGSKeychainItem keychainItemForService:[account_ identifier]
                                        username:nil];
     NSString *username = [keychainItem username];
     NSString *password = [keychainItem password];
     if (username && password) {
-      if ([lighthouseMessage length] > 140) {
+      if ([ticketTitle length] > 140) {
         NSString *warningString
           = HGSLocalizedString(@"Message too long - truncated.",
                                @"A dialog label explaining that their Lighthouse "
                                @"message was too long and was truncated");
         [self informUserWithDescription:warningString
                             successCode:kHGSUserMessageWarningType];
-        lighthouseMessage = [lighthouseMessage substringToIndex:140];
+        ticketTitle = [ticketTitle substringToIndex:140];
       }
 
       NSString *encodedMessage
-        = [lighthouseMessage gtm_stringByEscapingForURLArgument];
+        = [ticketTitle gtm_stringByEscapingForURLArgument];
       NSString *encodedMessageBody
-        = [NSString stringWithFormat:kMessageBodyFormat, encodedMessage];
-      NSString *sendStatusString = [NSString stringWithFormat:kSendStatusFormat,
-                                    encodedMessage];
+        = [NSString stringWithFormat:kMessageBodyFormat, encodedMessage, encodedMessage];
+      NSString *sendStatusString = [NSString stringWithFormat:kCreateTicketURLFormat,
+                                    username,
+                                    @"39540"];
       NSURL *sendStatusURL = [NSURL URLWithString:sendStatusString];
 
       // Construct an NSMutableURLRequest for the URL and set appropriate
@@ -140,36 +144,25 @@ GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
                               timeoutInterval:15.0];
       [sendStatusRequest setHTTPMethod:@"POST"];
       [sendStatusRequest setHTTPShouldHandleCookies:NO];
-      [sendStatusRequest setValue:@"QuickSearchBox"
-               forHTTPHeaderField:@"X-Lighthouse-Client"];
-      [sendStatusRequest setValue:@"1.0.0"
-               forHTTPHeaderField:@"X-Lighthouse-Client-Version"];
-      [sendStatusRequest setValue:@"http://www.google.com/qsb-mac"
-               forHTTPHeaderField:@"X-Lighthouse-Client-URL"];
+      [sendStatusRequest setValue:@"application/xml" forHTTPHeaderField:@"Content-Type"];
+      [sendStatusRequest setValue:password forHTTPHeaderField:@"X-LighthouseToken"];
 
       // Set request body, if specified (hopefully so), with 'source'
       // parameter if appropriate.
-      NSData *bodyData
-        = [encodedMessageBody dataUsingEncoding:NSUTF8StringEncoding];
+      NSData *bodyData = [encodedMessageBody dataUsingEncoding:NSUTF8StringEncoding];
       [sendStatusRequest setHTTPBody:bodyData];
 
-      GDataHTTPFetcher* tweetFetcher
-        = [GDataHTTPFetcher httpFetcherWithRequest:sendStatusRequest];
-      [tweetFetcher setIsRetryEnabled:YES];
-      [tweetFetcher
-       setCookieStorageMethod:kGDataHTTPFetcherCookieStorageMethodFetchHistory];
-      [tweetFetcher setCredential:
-       [NSURLCredential credentialWithUser:username
-                                  password:password
-                               persistence:NSURLCredentialPersistenceNone]];
-      [tweetFetcher beginFetchWithDelegate:self
-                         didFinishSelector:@selector(tweetFetcher:
+      GDataHTTPFetcher* ticketFetcher = [GDataHTTPFetcher httpFetcherWithRequest:sendStatusRequest];
+      [ticketFetcher setIsRetryEnabled:YES];
+      [ticketFetcher setCookieStorageMethod:kGDataHTTPFetcherCookieStorageMethodFetchHistory];
+      [ticketFetcher beginFetchWithDelegate:self
+                         didFinishSelector:@selector(ticketFetcher:
                                                      finishedWithData:)
-                           didFailSelector:@selector(tweetFetcher:
+                           didFailSelector:@selector(ticketFetcher:
                                                      failedWithError:)];
     } else {
       NSString *errorString
-        = HGSLocalizedString(@"Could not tweet. Please check the password for "
+        = HGSLocalizedString(@"Could not create ticket. Please check the password for "
                              @"account %@",
                              @"A dialog label explaining that the user could "
                              @"not send their Lighthouse data due to a bad "
@@ -183,40 +176,40 @@ GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
   }
 }
 
-- (void)tweetFetcher:(GDataHTTPFetcher *)fetcher
+- (void)ticketFetcher:(GDataHTTPFetcher *)fetcher
     finishedWithData:(NSData *)data {
   NSInteger statusCode = [fetcher statusCode];
   if (statusCode == 200) {
     NSString *successString
-      = HGSLocalizedString(@"Message tweeted!",
-                           @"A dialog label explaning that the user's message "
+      = HGSLocalizedString(@"Ticket created!",
+                           @"A dialog label explaining that the user's message "
                            @"has been successfully sent to Lighthouse");
     [self informUserWithDescription:successString
                         successCode:kHGSUserMessageNoteType];
   } else {
     NSString *errorFormat
-      = HGSLocalizedString(@"Could not tweet! (%d)",
+      = HGSLocalizedString(@"Could not create ticket! (%d)",
                            @"A dialog label explaining to the user that we could "
-                           @"not tweet. %d is an status code.");
+                           @"not create the ticket. %d is an status code.");
     NSString *errorString = [NSString stringWithFormat:errorFormat, statusCode];
     [self informUserWithDescription:errorString
                         successCode:kHGSUserMessageErrorType];
-    HGSLog(@"LighthouseTicketAction failed to tweet for account '%@': "
+    HGSLog(@"LighthouseTicketAction failed to create ticket for account '%@': "
            @"status=%d.", [account_ displayName], statusCode);
   }
 }
 
-- (void)tweetFetcher:(GDataHTTPFetcher *)fetcher
+- (void)ticketFetcher:(GDataHTTPFetcher *)fetcher
      failedWithError:(NSError *)error {
   NSString *errorFormat
-    = HGSLocalizedString(@"Could not tweet! (%d)",
+    = HGSLocalizedString(@"Could not create ticket! (%d)",
                          @"A dialog label explaining to the user that we could "
-                         @"not tweet. %d is an error code.");
+                         @"not create the ticket. %d is an error code.");
   NSString *errorString = [NSString stringWithFormat:errorFormat,
                            [error code]];
   [self informUserWithDescription:errorString
                       successCode:kHGSUserMessageErrorType];
-  HGSLog(@"LighthouseTicketAction failed to tweet for account '%@': "
+  HGSLog(@"LighthouseTicketAction failed to create ticket for account '%@': "
          @"error=%d '%@'.",
          [account_ displayName], [error code], [error localizedDescription]);
 }

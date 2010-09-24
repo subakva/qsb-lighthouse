@@ -44,15 +44,15 @@
 		</dict>
 		<dict>
 			<key>HGSExtensionClass</key>
-			<string>LighthouseSendMessageAction</string>
+			<string>LighthouseCreateTicketAction</string>
 			<key>HGSExtensionPoint</key>
 			<string>HGSActionsExtensionPoint</string>
 			<key>HGSExtensionUserVisibleName</key>
-			<string>^Send Lighthouse Status</string>
+			<string>^Create Lighthouse Ticket</string>
 			<key>HGSActionDirectObjectTypes</key>
 			<string>text</string>
 			<key>HGSExtensionIdentifier</key>
-			<string>com.google.text.action.sendlighthousemessage</string>
+			<string>com.google.text.action.createlighthouseticket</string>
 			<key>HGSExtensionDesiredAccountTypes</key>
 			<string>com.google.qsb.lighthouse.account</string>
 			<key>HGSExtensionIsEnabledByDefault</key>
