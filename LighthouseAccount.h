@@ -46,30 +46,13 @@
   // Set by and only useful within authentication.
   BOOL authCompleted_;
   BOOL authSucceeded_;
+  NSString *projectID_;
 }
 
-@end
+/*! The ID of the lighthouse project. */
+@property (nonatomic, copy) NSString *projectID;
 
-/*
- A controller which manages a window used to edit the token
- for a Lighthouse account.  Exposed publicly so that Interface
- Builder can see the action.
-*/
-@interface EditLighthouseAccountWindowController : QSBEditSimpleAccountWindowController
-
-/*! Open lighthouseapp.com in the user's preferred browser. */
-- (IBAction)openLighthouseHomePage:(id)sender;
-
-@end
-
-/*
- A controller which manages a view used to specify a Lighthouse domain
- name and token during the setup process.  Exposed publicly so that 
- Interface Builder can see the action.
-*/
-@interface SetUpLighthouseAccountViewController : QSBSetUpSimpleAccountViewController
-
-/*! Open lighthouseapp.com in the user's preferred browser. */
-- (IBAction)openLighthouseHomePage:(id)sender;
+// Open lighthouseapp.com in the user's preferred browser.
++ (BOOL)openLighthouseHomePage;
 
 @end

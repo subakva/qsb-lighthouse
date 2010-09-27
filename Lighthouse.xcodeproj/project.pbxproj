@@ -21,6 +21,8 @@
 		8B82524710F289A700F5AE93 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 8B82524410F289A700F5AE93 /* InfoPlist.strings */; };
 		8B82525E10F289BA00F5AE93 /* EditLighthouseAccount.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8B82525610F289BA00F5AE93 /* EditLighthouseAccount.xib */; };
 		8B82526910F289E700F5AE93 /* SetUpLighthouseAccountView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8B82526710F289E700F5AE93 /* SetUpLighthouseAccountView.xib */; };
+		96740329124FA70C005491C7 /* SetUpLighthouseAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 96740328124FA70C005491C7 /* SetUpLighthouseAccountViewController.m */; };
+		9674033D124FA833005491C7 /* EditLighthouseAccountWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9674033C124FA833005491C7 /* EditLighthouseAccountWindowController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +51,10 @@
 		8BAA94490F7A6EBC00DF4F12 /* LoadableBundle.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = LoadableBundle.xcconfig; path = "externals/google-toolbox-for-mac/XcodeConfig/Target/LoadableBundle.xcconfig"; sourceTree = QSBSRCROOT; };
 		8D5B49B6048680CD000E48DA /* Lighthouse.hgs */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Lighthouse.hgs; sourceTree = BUILT_PRODUCTS_DIR; };
 		8D5B49B7048680CD000E48DA /* Lighthouse-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Lighthouse-Info.plist"; sourceTree = "<group>"; };
+		96740319124FA69F005491C7 /* SetUpLighthouseAccountViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SetUpLighthouseAccountViewController.h; sourceTree = "<group>"; };
+		96740328124FA70C005491C7 /* SetUpLighthouseAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SetUpLighthouseAccountViewController.m; sourceTree = "<group>"; };
+		9674033B124FA833005491C7 /* EditLighthouseAccountWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditLighthouseAccountWindowController.h; sourceTree = "<group>"; };
+		9674033C124FA833005491C7 /* EditLighthouseAccountWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EditLighthouseAccountWindowController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,9 +110,13 @@
 		08FB77AFFE84173DC02AAC07 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				96740328124FA70C005491C7 /* SetUpLighthouseAccountViewController.m */,
+				96740319124FA69F005491C7 /* SetUpLighthouseAccountViewController.h */,
 				8B44632E10F2720800561E62 /* LighthouseAccount.h */,
 				8B44632F10F2720800561E62 /* LighthouseAccount.m */,
 				8B44633010F2720800561E62 /* LighthouseTicketAction.m */,
+				9674033B124FA833005491C7 /* EditLighthouseAccountWindowController.h */,
+				9674033C124FA833005491C7 /* EditLighthouseAccountWindowController.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -257,6 +267,8 @@
 				8B44633110F2720800561E62 /* LighthouseAccount.m in Sources */,
 				8B44633210F2720800561E62 /* LighthouseTicketAction.m in Sources */,
 				8B4465ED10F2863300561E62 /* GTMMethodCheck.m in Sources */,
+				96740329124FA70C005491C7 /* SetUpLighthouseAccountViewController.m in Sources */,
+				9674033D124FA833005491C7 /* EditLighthouseAccountWindowController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

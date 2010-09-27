@@ -23,13 +23,16 @@
 "Set up your Lighthouse account." = "Set up your Lighthouse account.";
 
 /* A dialog label telling you to update a Lighthouse access token. */
-"Update your Lighthouse token." = "Update your Lighthouse token.";
+"Update your Lighthouse account." = "Update your Lighthouse account.";
 
-/* A dialog label denoting a text field that contains an account name. */
+/* A dialog label denoting a text field that contains the Lighthouse sub-domain. */
 "Domain Name:" = "Domain Name:";
 
-/* A dialog label denoting a text field that contains a password. */
+/* A dialog label denoting a text field that contains the Lighthouse Token. */
 "Token:" = "Token:";
+
+/* A dialog label denoting a text field that contains the project ID. */
+"Project ID:" = "Project ID:";
 
 /* A button label for cancel */
 "Cancel" = "Cancel";

@@ -73,6 +73,7 @@ static const NSTimeInterval kAuthenticationTimeOutInterval = 15.0;
 
 @synthesize authCompleted = authCompleted_;
 @synthesize authSucceeded = authSucceeded_;
+@synthesize projectID = projectID_;
 
 - (NSString *)type {
   return kLighthouseAccountTypeName;
@@ -112,9 +113,11 @@ static const NSTimeInterval kAuthenticationTimeOutInterval = 15.0;
   BOOL authenticated = NO;
   // Test this account to see if we can connect.
   NSString *domainName = [self userName];
+  NSString *projectID = [self projectID];
   NSString *authURLWithDomain = [NSString
-                                 stringWithFormat:@"https://%@.lighthouseapp.com/projects.xml",
-                                 domainName];
+                                 stringWithFormat:@"https://%@.lighthouseapp.com/project/%@.xml",
+                                 domainName,
+                                 projectID];
   NSURL *authURL = [NSURL URLWithString:authURLWithDomain];
   NSMutableURLRequest *authRequest
     = [NSMutableURLRequest requestWithURL:authURL
@@ -180,12 +183,30 @@ static const NSTimeInterval kAuthenticationTimeOutInterval = 15.0;
   return success;
 }
 
+- (void)storeProjectID:(BOOL) authenticated {
+  if (authenticated) {
+    //  // If the account is authenticated, check that there is a project ID, and add it to the
+    //  // account.
+    //  LighthouseAccount *account = ((LighthouseAccount*) [self account]);
+    //  if ([account isAuthenticated]) {
+    //    [account setProjectID:[self projectID]];
+    ////    NSString *message = [NSString stringWithFormat:@"projectID = %@", projectID];
+    ////    NSRunAlertPanel(@"Debug", message, @"OK", @"Cancel",nil);
+    //  }
+
+//    [[self configuration] setObject:[self projectID] forKey:@"LighthouseAccountProjectIDKey"];
+
+    // TODO: set the project id in a properties file
+  }  
+}
+
 #pragma mark GDataHTTPFetcher Delegate Methods
 
 - (void)authSetFetcher:(GDataHTTPFetcher *)fetcher
       finishedWithData:(NSData *)data {
   NSURLResponse *response = [fetcher response];
   BOOL authenticated = [self validateResponse:response];
+  [self storeProjectID:authenticated];
   [self setAuthenticated:authenticated];
 }
 
@@ -201,6 +222,7 @@ static const NSTimeInterval kAuthenticationTimeOutInterval = 15.0;
    finishedWithData:(NSData *)data {
   NSURLResponse *response = [fetcher response];
   BOOL authenticated = [self validateResponse:response];
+  [self storeProjectID:authenticated];  
   [self setAuthCompleted:YES];
   [self setAuthSucceeded:authenticated];
 }
@@ -212,36 +234,6 @@ static const NSTimeInterval kAuthenticationTimeOutInterval = 15.0;
               [error code]);
   [self setAuthCompleted:YES];
   [self setAuthSucceeded:NO];
-}
-
-@end
-
-@implementation EditLighthouseAccountWindowController
-
-- (IBAction)openLighthouseHomePage:(id)sender {
-  BOOL success = [LighthouseAccount openLighthouseHomePage];
-  if (!success) {
-    NSBeep();
-  }
-}
-
-@end
-
-@implementation SetUpLighthouseAccountViewController
-
-- (id)initWithNibName:(NSString *)nibNameOrNil
-               bundle:(NSBundle *)nibBundleOrNil {
-  self = [super initWithNibName:nibNameOrNil
-                         bundle:nibBundleOrNil
-               accountTypeClass:[LighthouseAccount class]];
-  return self;
-}
-
-- (IBAction)openLighthouseHomePage:(id)sender {
-  BOOL success = [LighthouseAccount openLighthouseHomePage];
-  if (!success) {
-    NSBeep();
-  }
 }
 
 @end
