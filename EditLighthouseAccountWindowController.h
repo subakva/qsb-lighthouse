@@ -1,21 +1,17 @@
+#import <QSBPluginUI/QSBEditAccountWindowController.h>
 
-#import <QSBPluginUI/QSBPluginUI.h>
-
-/*
- A controller which manages a window used to edit the token
- for a Lighthouse account.  Exposed publicly so that Interface
- Builder can see the action.
- */
-@interface EditLighthouseAccountWindowController : QSBEditSimpleAccountWindowController {
+@interface EditLighthouseAccountWindowController : QSBEditAccountWindowController {
 @private
-NSString *projectID_;
+  NSString *domainName_;
+  NSString *accessToken_;
+  NSString *projectID_;
 }
 
-/*! The ID of the lighthouse project. */
+@property (nonatomic, copy) NSString *domainName;
+@property (nonatomic, copy) NSString *accessToken;
 @property (nonatomic, copy) NSString *projectID;
 
-
-/*! Open lighthouseapp.com in the user's preferred browser. */
+- (IBAction)acceptEditAccountSheet:(id)sender;
 - (IBAction)openLighthouseHomePage:(id)sender;
 
 @end

@@ -35,6 +35,7 @@
 #import <GTM/GTMNSString+URLArguments.h>
 #import <Vermilion/HGSKeychainItem.h>
 #import <GData/GDataHTTPFetcher.h>
+#import "LighthouseAccount.h"
 
 static NSString *const kCreateTicketURLFormat = @"https://%@.lighthouseapp.com/projects/%@/tickets.xml";
 static NSString *const kMessageBodyFormat = @"<?xml version='1.0' encoding='UTF-8'?>"
@@ -111,11 +112,16 @@ GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
 
 - (void)createLighthouseTicket:(NSString *)ticketTitle {
   if (ticketTitle) {
+    // NSString *trimmedTicketTitle = [ticketTitle stringByTrimmingCharactersInSet: [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+
     HGSKeychainItem* keychainItem
       = [HGSKeychainItem keychainItemForService:[account_ identifier]
                                        username:nil];
     NSString *username = [keychainItem username];
     NSString *password = [keychainItem password];
+    LighthouseAccount *account = ((LighthouseAccount*) account_);
+    NSString *projectID = [account projectID];
+
     if (username && password) {
       if ([ticketTitle length] > 140) {
         NSString *warningString
@@ -133,7 +139,7 @@ GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
         = [NSString stringWithFormat:kMessageBodyFormat, encodedMessage, encodedMessage];
       NSString *sendStatusString = [NSString stringWithFormat:kCreateTicketURLFormat,
                                     username,
-                                    @"39540"];
+                                    projectID];
       NSURL *sendStatusURL = [NSURL URLWithString:sendStatusString];
 
       // Construct an NSMutableURLRequest for the URL and set appropriate

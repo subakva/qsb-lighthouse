@@ -1,19 +1,20 @@
-#import <QSBPluginUI/QSBPluginUI.h>
-#import <QSBPluginUI/QSBSetUpSimpleAccountViewController.h>
+#import <QSBPluginUI/QSBSetUpAccountViewController.h>
 
-/*
- A controller which manages a view used to specify a Lighthouse domain
- name, token and project ID during the setup process.
-*/
-@interface SetUpLighthouseAccountViewController : QSBSetUpSimpleAccountViewController {
+@interface SetUpLighthouseAccountViewController : QSBSetUpAccountViewController {
 @private
+  NSString *domainName_;
+  NSString *accessToken_;
   NSString *projectID_;
 }
 
-/*! The ID of the lighthouse project. */
+@property (nonatomic, copy) NSString *domainName;
+@property (nonatomic, copy) NSString *accessToken;
 @property (nonatomic, copy) NSString *projectID;
 
-/*! Open lighthouseapp.com in the user's preferred browser. */
+- (IBAction)acceptSetupAccountSheet:(id)sender;
 - (IBAction)openLighthouseHomePage:(id)sender;
-
+- (void)presentMessageOffWindow:(NSWindow *)parentWindow
+                    withSummary:(NSString *)summary
+              explanationFormat:(NSString *)format
+                     alertStyle:(NSAlertStyle)style;
 @end
