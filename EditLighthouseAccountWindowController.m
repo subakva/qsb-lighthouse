@@ -30,7 +30,7 @@
   NSString *accessToken = [self accessToken];
   NSString *projectID   = [self projectID];
   LighthouseAccount *account = (LighthouseAccount *)[self account];
-  if ([account authenticateWithPassword:accessToken andProjectID:projectID]) {
+  if ([account authenticateWithAccessToken:accessToken andProjectID:projectID]) {
     [account setPassword:accessToken];
     [account setProjectID:projectID];
     [NSApp endSheet:sheet];

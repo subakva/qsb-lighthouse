@@ -5,9 +5,9 @@
 
 @implementation SetUpLighthouseAccountViewController
 
-@synthesize domainName = domainName_;
+@synthesize domainName  = domainName_;
 @synthesize accessToken = accessToken_;
-@synthesize projectID = projectID_;
+@synthesize projectID   = projectID_;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil
                bundle:(NSBundle *)nibBundleOrNil {
@@ -28,57 +28,25 @@
   NSWindow *sheet = [sender window];
   NSString *domainName = [self domainName];
   if ([domainName length] > 0) {
-    NSString *token = [self accessToken];
+    NSString *token     = [self accessToken];
     NSString *projectID = [self projectID];
 
     LighthouseAccount *newAccount = [[[LighthouseAccount alloc] initWithName:domainName] autorelease];
-    [newAccount setProjectID:projectID];
-    [newAccount setPassword:token];
     [self setAccount:newAccount];
 
     BOOL isGood = YES;
 
     HGSAccountsExtensionPoint *accountsPoint = [HGSExtensionPoint accountsPoint];
-
-//    NSString *accountIdentifier = [newAccount identifier];
-//    if ([accountsPoint extensionWithIdentifier:accountIdentifier]) {
-//      isGood = NO;
-//      NSString *summary = NSLocalizedString(@"Account already set up.",
-//                                            @"A dialog title denoting that an "
-//                                            @"account of that type with that "
-//                                            @"login information has already "
-//                                            @"been set up.");
-//      NSString *format
-//      = NSLocalizedString(@"The account '%@' has already been set up for "
-//                          @"use in Quick Search Box.", 
-//                          @"A dialog label explaining in detail that an "
-//                          @"account of that type with that "
-//                          @"login information has already "
-//                          @"been set up.");
-//      [self presentMessageOffWindow:sheet
-//                        withSummary:summary
-//                  explanationFormat:format
-//                         alertStyle:NSWarningAlertStyle];
-//    }
     
     // Authenticate the account.
     if (isGood) {
-      isGood = [newAccount authenticateWithPassword:token];
+      isGood = [newAccount authenticateWithAccessToken:token
+                                          andProjectID:projectID];
       [newAccount setAuthenticated:isGood];
+      [newAccount setProjectID:projectID];
+      [newAccount setAccessToken:token];
+
       if (isGood) {
-        // If there is not already a keychain item create one.  If there is
-        // then update the password.
-        HGSKeychainItem *keychainItem = [newAccount keychainItem];
-        if (keychainItem) {
-          [keychainItem setUsername:domainName
-                           password:token];
-        } else {
-          NSString *keychainServiceName = [newAccount identifier];
-          [HGSKeychainItem addKeychainItemForService:keychainServiceName
-                                        withUsername:domainName
-                                            password:token];
-        }
-        
         // Install the account.
         isGood = [accountsPoint extendWithObject:newAccount];
         if (isGood) {

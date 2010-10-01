@@ -6,27 +6,17 @@ static NSString *const kLighthouseURLString = @"http://lighthouseapp.com/";
 static NSString *const kLighthouseAccountTypeName = @"com.google.qsb.lighthouse.account";
 static NSString *const kLighthouseAccountProjectIDKey = @"LighthouseAccountProjectIDKey";
 
-// Authentication timing constants.
 static const NSTimeInterval kAuthenticationRetryInterval = 0.1;
 static const NSTimeInterval kAuthenticationGiveUpInterval = 30.0;
 static const NSTimeInterval kAuthenticationTimeOutInterval = 15.0;
 
 @interface LighthouseAccount ()
 
-// Check the authentication response to see if the token is valid.
-- (BOOL)validateResponse:(NSURLResponse *)response;
-
-// Add the token to the custom HTTP authorization header.
-- (void)addAuthenticationToRequest:(NSMutableURLRequest *)request
-                          token:(NSString *)token;
-
-// Open lighthouseapp.com in the user's preferred browser.
-+ (BOOL)openLighthouseHomePage;
-
 - (void)authSetFetcher:(GDataHTTPFetcher *)fetcher
       finishedWithData:(NSData *)data;
 - (void)authSetFetcher:(GDataHTTPFetcher *)fetcher
        failedWithError:(NSError *)error;
+
 - (void)authFetcher:(GDataHTTPFetcher *)fetcher
    finishedWithData:(NSData *)data;
 - (void)authFetcher:(GDataHTTPFetcher *)fetcher
@@ -41,13 +31,17 @@ static const NSTimeInterval kAuthenticationTimeOutInterval = 15.0;
 
 @synthesize authCompleted = authCompleted_;
 @synthesize authSucceeded = authSucceeded_;
-@synthesize projectID = projectID_;
+@synthesize projectID     = projectID_;
+//@synthesize domainName    = domainName_;
+//@synthesize accessToken   = accessToken_;
 
 - (id)initWithConfiguration:(NSDictionary *)prefDict {
   if ((self = [super initWithConfiguration:prefDict])) {
     NSString *projectID = [prefDict objectForKey:kLighthouseAccountProjectIDKey];
     if ([projectID length]) {
-      projectID_ = [projectID copy];
+      projectID_    = [projectID copy];
+      domainName_   = [self userName];
+      accessToken_  = [self password];
     } else {
       HGSLog(@"Missing project ID");
       [self release];
@@ -57,49 +51,37 @@ static const NSTimeInterval kAuthenticationTimeOutInterval = 15.0;
   return self;
 }
 
+- (NSDictionary *)configuration {
+  NSDictionary *parentConfig = [super configuration];
+  NSMutableDictionary *accountDict = [NSMutableDictionary dictionaryWithDictionary:parentConfig];
+  [accountDict setObject:[self projectID] forKey:kLighthouseAccountProjectIDKey];
+  return accountDict;
+}
+
 - (NSString *)type {
   return kLighthouseAccountTypeName;
 }
 
-#pragma mark Account Editing
-
-- (void)authenticate {
-  NSString *domainName = [self userName];
-  NSString *token = [self password];
-  NSString *projectID = [self projectID];
-  NSString *authURLWithDomain = [NSString
-                                 stringWithFormat:@"https://%@.lighthouseapp.com/project/%@.xml",
-                                 domainName,
-                                 projectID];
-  NSURL *authURL = [NSURL URLWithString:authURLWithDomain];
-  NSMutableURLRequest *authRequest
-    = [NSMutableURLRequest requestWithURL:authURL
-                              cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
-                          timeoutInterval:kAuthenticationTimeOutInterval];
-  if (authRequest) {
-    [authRequest setHTTPShouldHandleCookies:NO];
-    if ([domainName length]) {
-      [self addAuthenticationToRequest:authRequest
-                              token:token];
-    }
-    GDataHTTPFetcher* authSetFetcher
-      = [GDataHTTPFetcher httpFetcherWithRequest:authRequest];
-    [authSetFetcher setIsRetryEnabled:YES];
-    [authSetFetcher
-     setCookieStorageMethod:kGDataHTTPFetcherCookieStorageMethodFetchHistory];
-    [authSetFetcher beginFetchWithDelegate:self
-                         didFinishSelector:@selector(authSetFetcher:
-                                                     finishedWithData:)
-                           didFailSelector:@selector(authSetFetcher:
-                                                     failedWithError:)];
-  }
+- (void)setPassword:(NSString *)token {
+  [super setPassword:token];
+  accessToken_ = token;
 }
 
-- (BOOL)authenticateWithPassword:(NSString *)token
-                    andProjectID: (NSString *)projectID {
-  BOOL authenticated = NO;
-  // Test this account to see if we can connect.
-  NSString *domainName = [self userName];
+- (void) setAccessToken:(NSString *) token {
+  [self setPassword:token];
+}
+
+- (NSString *) accessToken {
+  return accessToken_;
+}
+
+- (NSString *) domainName {
+  return [self userName];
+}
+
+- (NSMutableURLRequest *)buildAuthRequestFor:(NSString *) domainName
+                               accessToken:(NSString *) token
+                                 projectID:(NSString *) projectID {
   NSString *authURLWithDomain = [NSString
                                  stringWithFormat:@"https://%@.lighthouseapp.com/project/%@.xml",
                                  domainName,
@@ -109,47 +91,53 @@ static const NSTimeInterval kAuthenticationTimeOutInterval = 15.0;
   = [NSMutableURLRequest requestWithURL:authURL
                             cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
                         timeoutInterval:kAuthenticationTimeOutInterval];
-  if (authRequest) {
-    [authRequest setHTTPShouldHandleCookies:NO];
-    if (domainName) {
-      [self addAuthenticationToRequest:authRequest
-                                 token:token];
-    }
-    [self setAuthCompleted:NO];
-    [self setAuthSucceeded:NO];
-    GDataHTTPFetcher* authFetcher
-    = [GDataHTTPFetcher httpFetcherWithRequest:authRequest];
-    [authFetcher setIsRetryEnabled:YES];
-    [authFetcher
-     setCookieStorageMethod:kGDataHTTPFetcherCookieStorageMethodFetchHistory];
-    [authFetcher beginFetchWithDelegate:self
-                      didFinishSelector:@selector(authFetcher:
-                                                  finishedWithData:)
-                        didFailSelector:@selector(authFetcher:
-                                                  failedWithError:)];
-    // Block until this fetch is done to make it appear synchronous. Sleep
-    // for a second and then check again until is has completed.  Just in
-    // case, put an upper limit of 30 seconds before we bail.
-    NSTimeInterval endTime
-    = [NSDate timeIntervalSinceReferenceDate] + kAuthenticationGiveUpInterval;
-    NSRunLoop* loop = [NSRunLoop currentRunLoop];
-    while (![self authCompleted]) {
-      NSDate *sleepTilDate
-      = [NSDate dateWithTimeIntervalSinceNow:kAuthenticationRetryInterval];
-      [loop runUntilDate:sleepTilDate];
-      if ([NSDate timeIntervalSinceReferenceDate] > endTime) {
-        [authFetcher stopFetching];
-        [self setAuthCompleted:YES];
-      }
-    }
-    authenticated = [self authSucceeded];
-  }
-  return authenticated;
+  [authRequest setHTTPShouldHandleCookies:NO];
+  [authRequest addValue:token forHTTPHeaderField:@"X-LighthouseToken"];
+  return authRequest;
+}
+
+- (void)authenticate {
+  NSMutableURLRequest *authRequest = [self buildAuthRequestFor:[self domainName]
+                                                   accessToken:[self accessToken]
+                                                     projectID:[self projectID]];
+  GDataHTTPFetcher *authSetFetcher = [GDataHTTPFetcher httpFetcherWithRequest:authRequest];
+  [authSetFetcher setIsRetryEnabled:YES];
+  [authSetFetcher setCookieStorageMethod:kGDataHTTPFetcherCookieStorageMethodFetchHistory];
+  [authSetFetcher beginFetchWithDelegate:self
+                       didFinishSelector:@selector(authSetFetcher:finishedWithData:)
+                         didFailSelector:@selector(authSetFetcher:failedWithError:)];
 }
 
 - (BOOL)authenticateWithPassword:(NSString *)token {
   NSString *projectID = [self projectID];
-  return [self authenticateWithPassword:token andProjectID: projectID];
+  return [self authenticateWithAccessToken:token andProjectID: projectID];
+}
+
+- (BOOL)authenticateWithAccessToken:(NSString *)token
+                       andProjectID:(NSString *)projectID {
+  NSMutableURLRequest *authRequest = [self buildAuthRequestFor:[self domainName]
+                                                   accessToken:token
+                                                     projectID:projectID];
+  [self setAuthCompleted:NO];
+  [self setAuthSucceeded:NO];
+
+  GDataHTTPFetcher* authFetcher = [GDataHTTPFetcher httpFetcherWithRequest:authRequest];
+  [authFetcher setIsRetryEnabled:YES];
+  [authFetcher setCookieStorageMethod:kGDataHTTPFetcherCookieStorageMethodFetchHistory];
+  [authFetcher beginFetchWithDelegate:self
+                    didFinishSelector:@selector(authFetcher:finishedWithData:)
+                      didFailSelector:@selector(authFetcher:failedWithError:)];
+  NSTimeInterval endTime = [NSDate timeIntervalSinceReferenceDate] + kAuthenticationGiveUpInterval;
+  NSRunLoop* loop = [NSRunLoop currentRunLoop];
+  while (![self authCompleted]) {
+    NSDate *sleepTilDate = [NSDate dateWithTimeIntervalSinceNow:kAuthenticationRetryInterval];
+    [loop runUntilDate:sleepTilDate];
+    if ([NSDate timeIntervalSinceReferenceDate] > endTime) {
+      [authFetcher stopFetching];
+      [self setAuthCompleted:YES];
+    }
+  }
+  return [self authSucceeded];
 }
 
 - (BOOL)validateResponse:(NSURLResponse *)response {
@@ -157,15 +145,9 @@ static const NSTimeInterval kAuthenticationTimeOutInterval = 15.0;
   if ([response isKindOfClass:[NSHTTPURLResponse class]]) {
     NSHTTPURLResponse *httpURLResponse = (NSHTTPURLResponse *)response;
     NSInteger statusCode = [httpURLResponse statusCode];
-    // A 200 means verified, a 401 means not verified.
     valid = (statusCode == 200);
   }
   return valid;
-}
-
-- (void)addAuthenticationToRequest:(NSMutableURLRequest *)request
-                          token:(NSString *)token {
-  [request addValue:token forHTTPHeaderField:@"X-LighthouseToken"];
 }
 
 + (BOOL)openLighthouseHomePage {
@@ -173,15 +155,6 @@ static const NSTimeInterval kAuthenticationTimeOutInterval = 15.0;
   BOOL success = [[NSWorkspace sharedWorkspace] openURL:lighthouseURL];
   return success;
 }
-
-- (NSDictionary *)configuration {
-  NSDictionary *parentConfig = [super configuration];
-  NSMutableDictionary *accountDict = [NSMutableDictionary dictionaryWithDictionary:parentConfig];
-  [accountDict setObject:[self projectID] forKey:kLighthouseAccountProjectIDKey];
-  return accountDict;
-}
-
-#pragma mark GDataHTTPFetcher Delegate Methods
 
 - (void)authSetFetcher:(GDataHTTPFetcher *)fetcher
       finishedWithData:(NSData *)data {
