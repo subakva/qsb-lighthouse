@@ -1,3 +1,4 @@
+
 #import <QSBPluginUI/QSBSetUpAccountViewController.h>
 
 @interface SetUpLighthouseAccountViewController : QSBSetUpAccountViewController {

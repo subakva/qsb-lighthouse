@@ -1,3 +1,4 @@
+
 #import "EditLighthouseAccountWindowController.h"
 #import <Vermilion/Vermilion.h>
 #import "LighthouseAccount.h"

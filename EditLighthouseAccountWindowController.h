@@ -1,3 +1,4 @@
+
 #import <QSBPluginUI/QSBEditAccountWindowController.h>
 
 @interface EditLighthouseAccountWindowController : QSBEditAccountWindowController {

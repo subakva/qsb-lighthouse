@@ -1,3 +1,4 @@
+
 #import "SetUpLighthouseAccountViewController.h"
 #import <Vermilion/Vermilion.h>
 #import <Vermilion/HGSKeychainItem.h>
@@ -34,68 +35,64 @@
     LighthouseAccount *newAccount = [[[LighthouseAccount alloc] initWithName:domainName] autorelease];
     [self setAccount:newAccount];
 
-    BOOL isGood = YES;
+    BOOL isGood = NO;
 
-    HGSAccountsExtensionPoint *accountsPoint = [HGSExtensionPoint accountsPoint];
-    
-    // Authenticate the account.
+    isGood = [newAccount authenticateWithAccessToken:token
+                                        andProjectID:projectID];
+    [newAccount setAuthenticated:isGood];
+    [newAccount setProjectID:projectID];
+    [newAccount setAccessToken:token];
+
     if (isGood) {
-      isGood = [newAccount authenticateWithAccessToken:token
-                                          andProjectID:projectID];
-      [newAccount setAuthenticated:isGood];
-      [newAccount setProjectID:projectID];
-      [newAccount setAccessToken:token];
-
+      // Install the account.
+      HGSAccountsExtensionPoint *accountsPoint = [HGSExtensionPoint accountsPoint];
+      isGood = [accountsPoint extendWithObject:newAccount];
       if (isGood) {
-        // Install the account.
-        isGood = [accountsPoint extendWithObject:newAccount];
-        if (isGood) {
-          [NSApp endSheet:sheet];
-          NSString *summary
-          = NSLocalizedString(@"Enable searchable items for this account.",
-                              @"A dialog title telling the user that they "
-                              @"should enable some searchable items for "
-                              @"the account they just set up.");
-          NSString *format
-          = NSLocalizedString(@"One or more search sources may have been "
-                              @"added for the account '%@'. It may be "
-                              @"necessary to manually enable each search "
-                              @"source that uses this account.  Do so via "
-                              @"the 'Searchable Items' tab in Preferences.",
-                              @"A dialog label telling the user in detail "
-                              @"how they should enable some searchable items "
-                              @"for the account they just set up.");
-          [self presentMessageOffWindow:[self parentWindow]
-                            withSummary:summary
-                      explanationFormat:format
-                             alertStyle:NSInformationalAlertStyle];
-          
-          [self setDomainName:nil];
-          [self setAccessToken:nil];
-          [self setProjectID:nil];
-        } else {
-          HGSLogDebug(@"Failed to install account extension for account '%@'.",
-                      domainName);
-        }
-      } else {
-        NSString *summary = NSLocalizedString(@"Could not authenticate that "
-                                              @"account.", 
-                                              @"A dialog title denoting that "
-                                              @"we were unable to authenticate "
-                                              @"the account with the user info "
-                                              @"given to us".);
+        [NSApp endSheet:sheet];
+        NSString *summary
+        = NSLocalizedString(@"Enable searchable items for this account.",
+                            @"A dialog title telling the user that they "
+                            @"should enable some searchable items for "
+                            @"the account they just set up.");
         NSString *format
-        = NSLocalizedString(@"The account '%@' could not be authenticated. "
-                            @"Please check the account name and password "
-                            @"and try again.", 
-                            @"A dialog label explaining in detail that "
-                            @"we were unable to authenticate the account "
-                            @"with the user info given to us".);
-        [self presentMessageOffWindow:sheet
+        = NSLocalizedString(@"One or more search sources may have been "
+                            @"added for the account '%@'. It may be "
+                            @"necessary to manually enable each search "
+                            @"source that uses this account.  Do so via "
+                            @"the 'Searchable Items' tab in Preferences.",
+                            @"A dialog label telling the user in detail "
+                            @"how they should enable some searchable items "
+                            @"for the account they just set up.");
+        [self presentMessageOffWindow:[self parentWindow]
                           withSummary:summary
                     explanationFormat:format
-                           alertStyle:NSWarningAlertStyle];
+                           alertStyle:NSInformationalAlertStyle];
+        
+        [self setDomainName:nil];
+        [self setAccessToken:nil];
+        [self setProjectID:nil];
+      } else {
+        HGSLogDebug(@"Failed to install account extension for account '%@'.",
+                    domainName);
       }
+    } else {
+      NSString *summary = NSLocalizedString(@"Could not authenticate that "
+                                            @"account.", 
+                                            @"A dialog title denoting that "
+                                            @"we were unable to authenticate "
+                                            @"the account with the user info "
+                                            @"given to us".);
+      NSString *format
+      = NSLocalizedString(@"The account '%@' could not be authenticated. "
+                          @"Please check the account name and password "
+                          @"and try again.", 
+                          @"A dialog label explaining in detail that "
+                          @"we were unable to authenticate the account "
+                          @"with the user info given to us".);
+      [self presentMessageOffWindow:sheet
+                        withSummary:summary
+                  explanationFormat:format
+                         alertStyle:NSWarningAlertStyle];
     }
   }
 }
