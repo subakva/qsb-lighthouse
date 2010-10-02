@@ -2,8 +2,6 @@
 #import <Vermilion/Vermilion.h>
 #import <QSBPluginUI/QSBPluginUI.h>
 
-@class LighthouseAccountEditController;
-
 @interface LighthouseAccount : HGSSimpleAccount {
 @private
   BOOL authCompleted_;
@@ -16,6 +14,15 @@
 @property (nonatomic, copy, readonly) NSString *domainName;
 
 + (BOOL)openLighthouseHomePage;
+
++ (NSMutableURLRequest *)createAuthenticatedRequestFor:(NSString *)apiPathPattern
+                                            domainName:(NSString *) domainName
+                                           accessToken:(NSString *) accessToken
+                                             projectID:(NSString *) projectID;
+
++ (NSMutableURLRequest *)createAuthenticatedRequestFor:(NSString *)urlPattern
+                                               account:(LighthouseAccount *) account;
+
 - (BOOL)authenticateWithAccessToken:(NSString *)accessToken
-                    andProjectID: (NSString *)projectID;
+                       andProjectID: (NSString *)projectID;
 @end

@@ -9,7 +9,7 @@
 	<key>CFBundleName</key>
 	<string>${PRODUCT_NAME}</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.google.qsb.plugin.Lighthouse</string>
+	<string>com.subakva.qsb.plugin.Lighthouse</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -24,13 +24,13 @@
 			<key>HGSExtensionClass</key>
 			<string>HGSAccountType</string>
 			<key>HGSExtensionIdentifier</key>
-			<string>com.google.qsb.lighthouse.account</string>
+			<string>com.subakva.qsb.lighthouse.account</string>
 			<key>HGSExtensionUserVisibleName</key>
 			<string>^Lighthouse</string>
 			<key>HGSExtensionPoint</key>
 			<string>HGSAccountTypesExtensionPoint</string>
 			<key>HGSExtensionOfferedAccountType</key>
-			<string>com.google.qsb.lighthouse.account</string>
+			<string>com.subakva.qsb.lighthouse.account</string>
 			<key>HGSExtensionOfferedAccountClass</key>
 			<string>LighthouseAccount</string>
 			<key>QSBSetUpAccountViewNibName</key>
@@ -52,9 +52,9 @@
 			<key>HGSActionDirectObjectTypes</key>
 			<string>text</string>
 			<key>HGSExtensionIdentifier</key>
-			<string>com.google.text.action.createlighthouseticket</string>
+			<string>com.subakva.qsb.lighthouse.text.action.createticketaction</string>
 			<key>HGSExtensionDesiredAccountTypes</key>
-			<string>com.google.qsb.lighthouse.account</string>
+			<string>com.subakva.qsb.lighthouse.account</string>
 			<key>HGSExtensionIsEnabledByDefault</key>
 			<true/>
 			<key>HGSActionMustRunOnMainThread</key>

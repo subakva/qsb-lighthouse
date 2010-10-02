@@ -6,13 +6,29 @@
 static NSString *const kLighthouseURLString = @"http://lighthouseapp.com/";
 static NSString *const kLighthouseAccountTypeName = @"com.subakva.qsb.lighthouse.account";
 static NSString *const kLighthouseAccountProjectIDKey = @"LighthouseAccountProjectIDKey";
-static NSString *const kLighthouseAuthURLFormat = @"https://%@.lighthouseapp.com/projects/%@.xml";
+static NSString *const kLighthouseBaseURLFormat = @"https://%@.lighthouseapp.com";
+static NSString *const kLighthouseProjectsPathFormat = @"/projects/%@.xml";
 static NSString *const kLighthouseAuthHeaderName = @"X-LighthouseToken";
 
+/*!
+ The amount of time (in seconds) between checks to determine whether a
+ pseudo-synchronous authentication request has completed.
+ */
 static const NSTimeInterval kAuthenticationRetryInterval = 0.1;
+
+/*!
+ The amount of time (in seconds) before giving up on an pseudo-synchronous
+ authentication request.
+ */
 static const NSTimeInterval kAuthenticationGiveUpInterval = 30.0;
+
+/*!
+ The amount of time (in seconds) before giving up on an HTTP authentication
+ request.
+ */
 static const NSTimeInterval kAuthenticationTimeOutInterval = 15.0;
 
+// Private Interface
 @interface LighthouseAccount ()
 
 - (void)authSetFetcher:(GDataHTTPFetcher *)fetcher
@@ -70,6 +86,11 @@ static const NSTimeInterval kAuthenticationTimeOutInterval = 15.0;
   return accountDict;
 }
 
+- (void) dealloc {
+  [projectID_ release];
+  [super dealloc];
+}
+
 /*!
  Returns the type name of the Lighthouse account.
  
@@ -102,26 +123,55 @@ static const NSTimeInterval kAuthenticationTimeOutInterval = 15.0;
 }
 
 /*!
+ Builds a request to the apiURLPattern with the appropriate authentication
+ headers. apiPathPattern is assumed to have to a placeholder the projectID.
+ */
++ (NSMutableURLRequest *)createAuthenticatedRequestFor:(NSString *)apiPathPattern
+                                               account:(LighthouseAccount *) account {
+  return [LighthouseAccount createAuthenticatedRequestFor:apiPathPattern
+                                               domainName:[account domainName]
+                                              accessToken:[account accessToken]
+                                                projectID:[account projectID]];
+}
+
+/*!
+ Builds a request to the apiURLPattern with the appropriate authentication
+ headers. apiPathPattern is assumed to have to a placeholder the projectID.
+ */
++ (NSMutableURLRequest *)createAuthenticatedRequestFor:(NSString *)apiPathPattern
+                                            domainName:(NSString *) domainName
+                                           accessToken:(NSString *) accessToken
+                                             projectID:(NSString *) projectID {
+
+  NSString *pathString    = [NSString stringWithFormat:apiPathPattern, projectID];
+  NSString *domainString  = [NSString stringWithFormat:kLighthouseBaseURLFormat, domainName];
+  NSString *apiURLString  = [domainString stringByAppendingString:pathString];
+  NSURL *authURL          = [NSURL URLWithString:apiURLString];
+
+  NSMutableURLRequest *authRequest = [NSMutableURLRequest
+                                      requestWithURL:authURL
+                                      cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
+                                      timeoutInterval:kAuthenticationTimeOutInterval];
+  [authRequest setHTTPShouldHandleCookies:NO];
+  [authRequest addValue:accessToken forHTTPHeaderField:kLighthouseAuthHeaderName];
+  [authRequest setValue:@"application/xml" forHTTPHeaderField:@"Content-Type"];
+
+  return authRequest;
+}
+
+/*!
  Builds an request with all the appropriate headers for authenticating an
  account.
  
  This is called by the various authenticate methods.
  */
 - (NSMutableURLRequest *)buildAuthRequestFor:(NSString *) domainName
-                               accessToken:(NSString *) token
-                                 projectID:(NSString *) projectID {
-  NSString *authURLWithDomain = [NSString
-                                 stringWithFormat:kLighthouseAuthURLFormat,
-                                 domainName,
-                                 projectID];
-  NSURL *authURL = [NSURL URLWithString:authURLWithDomain];
-  NSMutableURLRequest *authRequest
-  = [NSMutableURLRequest requestWithURL:authURL
-                            cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
-                        timeoutInterval:kAuthenticationTimeOutInterval];
-  [authRequest setHTTPShouldHandleCookies:NO];
-  [authRequest addValue:token forHTTPHeaderField:kLighthouseAuthHeaderName];
-  return authRequest;
+                                 accessToken:(NSString *) token
+                                   projectID:(NSString *) projectID {
+  return [LighthouseAccount createAuthenticatedRequestFor:kLighthouseProjectsPathFormat
+                                               domainName:domainName
+                                              accessToken:token
+                                                projectID:projectID];
 }
 
 /*!

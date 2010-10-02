@@ -18,12 +18,9 @@
 
 - (void)awakeFromNib {
   LighthouseAccount *account = (LighthouseAccount *)[self account];
-  NSString *domainName  = [account userName];
-  NSString *accessToken = [account password];
-  NSString *projectID   = [account projectID];
-  [self setDomainName:domainName];
-  [self setAccessToken:accessToken];
-  [self setProjectID:projectID];
+  [self setDomainName :[account domainName]];
+  [self setAccessToken:[account accessToken]];
+  [self setProjectID  :[account projectID]];
 }
 
 - (IBAction)acceptEditAccountSheet:(id)sender {

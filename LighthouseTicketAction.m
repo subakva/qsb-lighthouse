@@ -6,31 +6,35 @@
 #import <GData/GDataHTTPFetcher.h>
 #import "LighthouseAccount.h"
 
-static NSString *const kCreateTicketURLFormat = @"https://%@.lighthouseapp.com/projects/%@/tickets.xml";
-static NSString *const kMessageBodyFormat = @"<?xml version='1.0' encoding='UTF-8'?>"
+// The URL path format for creating a ticket.
+static NSString *const kLighthouseProjectsPathFormat = @"/projects/%@/tickets.xml";
+
+// The XML format for creating a new ticket.
+static NSString *const kMessageBodyFormat
+  = @"<?xml version='1.0' encoding='UTF-8'?>"
 "<ticket>"
 "  <body>%@</body>"
 "  <title>%@</title>"
 "  <tag>qsb</tag>"
 "</ticket>";
 
-// An action that will create a new ticket for a Lighthouse account.
-//
 @interface LighthouseCreateTicketAction : HGSAction <HGSAccountClientProtocol> {
  @private
   HGSSimpleAccount *account_;
 }
 
-// Called by performWithInfo: to actually send the message.
+// Sends a request to create the new ticket.
 - (void)createLighthouseTicket:(NSString *)ticketTitle;
 
-// Utility function to send notification so user can be notified of
-// success or failure.
+// Displays a message (Growl).
 - (void)informUserWithDescription:(NSString *)description
                       successCode:(NSInteger)successCode;
-- (void)loginCredentialsChanged:(NSNotification *)notification ;
+
+// Delegate method to handle a response from the API.
 - (void)ticketFetcher:(GDataHTTPFetcher *)fetcher
     finishedWithData:(NSData *)data;
+
+// Delegate method to handle failure to get a response from the API.
 - (void)ticketFetcher:(GDataHTTPFetcher *)fetcher
      failedWithError:(NSError *)error;
 @end
@@ -38,19 +42,11 @@ static NSString *const kMessageBodyFormat = @"<?xml version='1.0' encoding='UTF-
 
 @implementation LighthouseCreateTicketAction
 
-GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
-
+// Ensures that there is an account.
 - (id)initWithConfiguration:(NSDictionary *)configuration {
   if ((self = [super initWithConfiguration:configuration])) {
     account_ = [[configuration objectForKey:kHGSExtensionAccountKey] retain];
-    if (account_) {
-      // Watch for credential changes.
-      NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
-      [nc addObserver:self
-             selector:@selector(loginCredentialsChanged:)
-                 name:kHGSAccountDidChangeNotification
-               object:account_];
-    } else {
+    if (!account_) {
       HGSLogDebug(@"Missing account identifier for LighthouseTicketAction '%@'",
                   [self identifier]);
       [self release];
@@ -61,17 +57,18 @@ GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
 }
 
 - (void)dealloc {
-  [[NSNotificationCenter defaultCenter] removeObserver:self];
   [account_ release];
   [super dealloc];
 }
 
+/*!
+ Called when the user invokes the action. If there is text available, it
+ tries to create a ticket.
+ */
 - (BOOL)performWithInfo:(NSDictionary*)info {
-  HGSResultArray *directObjects
-    = [info objectForKey:kHGSActionDirectObjectsKey];
+  HGSResultArray *directObjects = [info objectForKey:kHGSActionDirectObjectsKey];
   BOOL success = NO;
   if (directObjects) {
-    // Pull something out of |directObjects| that can be turned into a ticket.
     NSString *message = [directObjects displayName];
     [self createLighthouseTicket:message];
     success = YES;
@@ -79,55 +76,26 @@ GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
   return success;
 }
 
+/*!
+ Create a new ticket with the specified text.
+ */
 - (void)createLighthouseTicket:(NSString *)ticketTitle {
   if (ticketTitle) {
-    // NSString *trimmedTicketTitle = [ticketTitle stringByTrimmingCharactersInSet: [NSCharacterSet whitespaceAndNewlineCharacterSet]];
-
-    HGSKeychainItem* keychainItem
-      = [HGSKeychainItem keychainItemForService:[account_ identifier]
-                                       username:nil];
-    NSString *username = [keychainItem username];
-    NSString *password = [keychainItem password];
     LighthouseAccount *account = ((LighthouseAccount*) account_);
-    NSString *projectID = [account projectID];
 
-    if (username && password) {
-      if ([ticketTitle length] > 140) {
-        NSString *warningString
-          = HGSLocalizedString(@"Message too long - truncated.",
-                               @"A dialog label explaining that their Lighthouse "
-                               @"message was too long and was truncated");
-        [self informUserWithDescription:warningString
-                            successCode:kHGSUserMessageWarningType];
-        ticketTitle = [ticketTitle substringToIndex:140];
-      }
+    if (account) {
+      NSString *messageBody = [NSString stringWithFormat:kMessageBodyFormat,
+                               ticketTitle,
+                               ticketTitle];
+      NSData *bodyData = [messageBody dataUsingEncoding:NSUTF8StringEncoding];
+      
+      NSMutableURLRequest *createTicketRequest
+        = [LighthouseAccount createAuthenticatedRequestFor:kLighthouseProjectsPathFormat
+                                                   account:account];
+      [createTicketRequest setHTTPMethod:@"POST"];
+      [createTicketRequest setHTTPBody:bodyData];
 
-      NSString *encodedMessage
-        = [ticketTitle gtm_stringByEscapingForURLArgument];
-      NSString *encodedMessageBody
-        = [NSString stringWithFormat:kMessageBodyFormat, encodedMessage, encodedMessage];
-      NSString *sendStatusString = [NSString stringWithFormat:kCreateTicketURLFormat,
-                                    username,
-                                    projectID];
-      NSURL *sendStatusURL = [NSURL URLWithString:sendStatusString];
-
-      // Construct an NSMutableURLRequest for the URL and set appropriate
-      // request method.
-      NSMutableURLRequest *sendStatusRequest
-        = [NSMutableURLRequest requestWithURL:sendStatusURL
-                                  cachePolicy:NSURLRequestReloadIgnoringCacheData
-                              timeoutInterval:15.0];
-      [sendStatusRequest setHTTPMethod:@"POST"];
-      [sendStatusRequest setHTTPShouldHandleCookies:NO];
-      [sendStatusRequest setValue:@"application/xml" forHTTPHeaderField:@"Content-Type"];
-      [sendStatusRequest setValue:password forHTTPHeaderField:@"X-LighthouseToken"];
-
-      // Set request body, if specified (hopefully so), with 'source'
-      // parameter if appropriate.
-      NSData *bodyData = [encodedMessageBody dataUsingEncoding:NSUTF8StringEncoding];
-      [sendStatusRequest setHTTPBody:bodyData];
-
-      GDataHTTPFetcher* ticketFetcher = [GDataHTTPFetcher httpFetcherWithRequest:sendStatusRequest];
+      GDataHTTPFetcher* ticketFetcher = [GDataHTTPFetcher httpFetcherWithRequest:createTicketRequest];
       [ticketFetcher setIsRetryEnabled:YES];
       [ticketFetcher setCookieStorageMethod:kGDataHTTPFetcherCookieStorageMethodFetchHistory];
       [ticketFetcher beginFetchWithDelegate:self
@@ -142,7 +110,7 @@ GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
                              @"A dialog label explaining that the user could "
                              @"not send their Lighthouse data due to a bad "
                              @"password for account %@");
-      errorString = [NSString stringWithFormat:errorString, username];
+      errorString = [NSString stringWithFormat:errorString, [account domainName]];
       [self informUserWithDescription:errorString
                           successCode:kHGSUserMessageWarningType];
       HGSLog(@"LighthouseTicketAction failed due to missing keychain item "
@@ -184,6 +152,7 @@ GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
                            [error code]];
   [self informUserWithDescription:errorString
                       successCode:kHGSUserMessageErrorType];
+  HGSLog(@"Failed request with error: %@", error);
   HGSLog(@"LighthouseTicketAction failed to create ticket for account '%@': "
          @"error=%d '%@'.",
          [account_ displayName], [error code], [error localizedDescription]);
@@ -205,13 +174,6 @@ GTM_METHOD_CHECK(NSString, gtm_stringByEscapingForURLArgument);
                           image:lighthouseT
                            type:successCode];
 }
-
-- (void)loginCredentialsChanged:(NSNotification *)notification {
-  HGSAccount *account = [notification object];
-  HGSAssert(account == account_, @"Notification from bad account!");
-}
-
-#pragma mark HGSAccountClientProtocol Methods
 
 - (BOOL)accountWillBeRemoved:(HGSAccount *)account {
   HGSAssert(account == account_, @"Notification from bad account!");
