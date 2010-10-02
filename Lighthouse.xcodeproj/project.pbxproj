@@ -33,7 +33,7 @@
 		7F8450F40F6B1F7B000CD5C1 /* QSBDebug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = QSBDebug.xcconfig; path = QSB/xcconfig/QSBDebug.xcconfig; sourceTree = QSBSRCROOT; };
 		7F8450F50F6B1F7B000CD5C1 /* QSBRelease.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = QSBRelease.xcconfig; path = QSB/xcconfig/QSBRelease.xcconfig; sourceTree = QSBSRCROOT; };
 		8B0D217D0F796E1C00FD4A12 /* HGSBundle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = HGSBundle.m; path = ../Vermilion/Vermilion/HGSBundle.m; sourceTree = QSBSRCROOT; };
-		8B0D21FB0F7970DE00FD4A12 /* README.markdown */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.markdown; sourceTree = "<group>"; };
+		8B0D21FB0F7970DE00FD4A12 /* README.markdown */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.markdown; sourceTree = "<group>"; wrapsLines = 0; };
 		8B44632E10F2720800561E62 /* LighthouseAccount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LighthouseAccount.h; sourceTree = "<group>"; };
 		8B44632F10F2720800561E62 /* LighthouseAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LighthouseAccount.m; sourceTree = "<group>"; };
 		8B44633010F2720800561E62 /* LighthouseTicketAction.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LighthouseTicketAction.m; sourceTree = "<group>"; };
